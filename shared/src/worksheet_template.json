@@ -1,0 +1,29 @@
+{
+  "serialNumber": "",
+  "manufacturer": "",
+  "model": "",
+  "isErased": false,
+  "isSecureErased": false,
+  "eraseMethod": "",
+  "eraseCount": 0,
+  "preferredLanguage": "",
+  "keyboardType": "",
+  "preferredSystem": "",
+  "installationCount": 0,
+  "hardwareSummary": {
+    "CPUList": [],
+    "GPUList": [],
+    "installedMemory": "",
+    "WLAN": "",
+    "displaySize": "",
+    "batteryType": "",
+    "batteryHealth": "",
+    "diskList": [
+      {
+        "diskSerialNumber": "",
+        "diskType": "",
+        "diskSize": ""
+      }
+    ]
+  }
+}

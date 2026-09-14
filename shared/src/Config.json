@@ -1,0 +1,21 @@
+{
+  "mountPoint": "N:",
+  "ISOPath": "ISO",
+  "LOGPath": "logs",
+  "unitLogPath": "units",
+  "driverPath": "DRIVERS",
+  "defaultLanguage": "HU",
+  "defaultSystem": "Windows",
+  "defaultWindowsEdition": "HOME",
+  "OEMKeyPriority": true,
+  "updateBIOS": false,
+  "fileDiskpartTXT": "diskpart.txt",
+  "fileUnattendedXML": "unattend.xml",
+  "filePostInstallLauncher": "postInstallLauncher.cmd",
+  "filePostInstallScript": "postInstall.ps1",
+  "dirPostInstall": "postInstall",
+  "dirWin11Hun": "Win11_25H2_Hungarian_x64",
+  "dirWin11Eng": "Win11_25H2_EnglishInternational_x64",
+  "rebootAfterOSInstalled": false,
+  "pauseBeforeEnd": true
+}
