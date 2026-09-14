@@ -1,0 +1,11 @@
+*.iso
+shared/ISO/*
+!shared/ISO/.gitkeep
+shared/DRIVERS/Dell Inc/*
+!shared/DRIVERS/Dell Inc/.gitkeep
+shared/logs/*
+!shared/logs/.gitkeep
+startnet/wifi.xml
+archive/
+service/archive/
+shared/src/logging/tests/
