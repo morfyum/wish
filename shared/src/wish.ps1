@@ -178,10 +178,29 @@ $fullPathManufacturer = "$($config.mountPoint)/$($config.driverPath)/$manufactur
 Logging -LogLevel "INFO" -LogMessage "- Create $fullPathManufacturer directory if it doesnt exist" -LogDestination $wishLogs -ShowColors -Less
 New-item -ItemType Directory -Path $fullPathManufacturer -ErrorAction SilentlyContinue | Out-Null
 
-
 # TODO SELECTED SYSTEM
 Logging -LogLevel "WARNING" -LogMessage "- TODO Select system by OEM key logic" -LogDestination $wishLogs -ShowColors -Less
-$selectedSystem = $fullPathWin11HunSrc
+# Select System Language
+# Selet system language
+
+
+#$selectedSystem = $fullPathWin11HunSrc
+$selectedSystem = $null
+if ($($config.defaultLanguage).ToUpper() -eq "ENGB") {
+    $selectedSystem = $fullPathWin11EngSrc
+    Logging -LogLevel "INFO" -LogMessage "- Selected installation pathy by Config : [$($config.defaultLanguage)] " -LogDestination $fullPathUnitLogs -ShowColors -Less
+} elseif ($($config.defaultLanguage).ToUpper() -eq "HU") {
+    $selectedSystem = $fullPathWin11HunSrc
+    Logging -LogLevel "INFO" -LogMessage "- Selected installation pathy by Config : [$($config.defaultLanguage)] " -LogDestination $fullPathUnitLogs -ShowColors -Less
+} else {
+    Logging -LogLevel "CRITICAL" -LogMessage "- CRITICAL: Selected installation path is null => EXIT" -LogDestination $wishLogs -ShowColors -Less
+    Logging -LogLevel "CRITICAL" -LogMessage "- CRITICAL: Selected installation path is null => EXIT" -LogDestination $fullPathUnitLogs -ShowColors -Less
+    Pause
+    exit 1
+}
+Logging -LogLevel "INFO" -LogMessage "- INSTALL: [$selectedSystem]" -LogDestination $fullPathUnitLogs -ShowColors -Less
+
+
 
 Logging -LogLevel "INFO" -LogMessage "- Full path Win11 HU source : $fullPathWin11HunSrc" -LogDestination $fullPathUnitLogs -ShowColors -Less
 Logging -LogLevel "INFO" -LogMessage "- Full path Win11 EN source : $fullPathWin11EngSrc" -LogDestination $fullPathUnitLogs -ShowColors -Less
