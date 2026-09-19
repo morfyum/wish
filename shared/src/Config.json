@@ -4,9 +4,11 @@
   "LOGPath": "logs",
   "unitLogPath": "units",
   "driverPath": "DRIVERS",
-  "defaultLanguage": "HU",
+  "defaultLanguage": "ENGB",
+  "availableLanguages": ["ENGB", "HU"],
   "defaultSystem": "Windows",
   "defaultWindowsEdition": "HOME",
+  "availableWindowsEditions": ["HOME", "PRO"],
   "OEMKeyPriority": true,
   "updateBIOS": false,
   "fileDiskpartTXT": "diskpart.txt",
@@ -15,7 +17,7 @@
   "filePostInstallScript": "postInstall.ps1",
   "dirPostInstall": "postInstall",
   "dirWin11Hun": "Win11_25H2_Hungarian_x64",
-  "dirWin11Eng": "Win11_25H2_EnglishInternational_x64",
+  "dirWin11Eng": "Win11_25H2_EnglishInternational_x64_v2",
   "rebootAfterOSInstalled": false,
   "pauseBeforeEnd": true
 }
