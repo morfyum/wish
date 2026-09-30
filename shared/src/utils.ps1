@@ -194,18 +194,43 @@ function getIndexFromDictionary {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
-        [string]$WinEdition
+        [string]$WinEdition,
+        [parameter(Mandatory = $false)]
+        [string]$ProductLanguage
     )
-    # Hashtable
-    $map = @{
-        "home"                 = 1
-        "home n"               = 2
-        "education"            = 3
-        "education n"          = 4
-        "pro"                  = 5
-        "pro n"                = 6
-        "pro for workstations" = 7
-        "enterprise"           = 8
+
+    if($ProductLanguage -eq "HU") {
+        Logging -LogLevel "INFO" -LogMessage "- INFO: Using Hungarian language mapping for Windows editions." -LogDestination $fullPathUnitLogs -ShowColors -Less
+        # Hashtable for HU
+        $map = @{
+            "home"                 = 1
+            "home n"               = 2
+            "education"            = 3
+            "education n"          = 4
+            "pro"                  = 5
+            "pro n"                = 6
+            "pro for workstations" = 7
+            "enterprise"           = 8
+        }
+    } else {
+        # International Windows
+        #Logging -LogLevel "INFO" -LogMessage "- INFO: Using International English language mapping for Windows editions." -LogDestination $wishLogs -ShowColors -Less
+        Logging -LogLevel "INFO" -LogMessage "- INFO: Using [$ProductLanguage] language mapping for Windows editions." -LogDestination $fullPathUnitLogs -ShowColors -Less
+        # Hashtable for ENGB (default)
+        $map = @{
+            "home"                  = 1
+            "home n"                = 2
+            "home single language"  = 3
+            "education"             = 4
+            "education n"           = 5
+            "pro"                   = 6
+            "pro n"                 = 7
+            "pro education"         = 8
+            "pro education n"       = 9
+            "pro for workstation"   = 10
+            "pro n for workstation" = 11
+        }
+
     }
 
     $key = $WinEdition.Trim().ToLower()
