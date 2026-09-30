@@ -15,7 +15,6 @@ $targetDrive = "C:\"
 
 Logging -LogLevel "INFO" -LogMessage "# WELCOME IN WINDOWS IMAGING SHELL!" -LogDestination $wishLogs -ShowColors -Less
 
-
 Logging -LogLevel "INFO" -LogMessage "- Create [$unitLogs] directory tree if it doesnt exist" -LogDestination $wishLogs -ShowColors -Less
 New-Item -ItemType Directory -Path $unitLogs -ErrorAction SilentlyContinue | Out-Null
 
@@ -135,7 +134,7 @@ Logging -LogLevel "INFO" -LogMessage "- Pause before end          : $($config.pa
 #Write-Host "- Reboot after OSinstall    : $($config.rebootAfterOSInstalled)"
 
 # TODO Overwrite default if needed
-$selectedWindowsEdition = getIndexFromDictionary -WinEdition $($config.defaultWindowsEdition)
+$selectedWindowsEdition = getIndexFromDictionary -WinEdition $($config.defaultWindowsEdition) -ProductLanguage $($config.defaultLanguage)
 
 if ($selectedWindowsEdition -eq $null) {
     Logging -LogLevel "CRITICAL" -LogMessage "- $($serialNumber) Selected Windows Edition is null => EXIT" -LogDestination $wishLogs -ShowColors -Less
