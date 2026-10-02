@@ -9,3 +9,6 @@ startnet/wifi.xml
 archive/
 service/archive/
 shared/src/logging/tests/
+shared/postInstall/resources/*
+!shared/postInstall/resources/.gitkeep
+.vscode/
