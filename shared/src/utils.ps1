@@ -1,5 +1,5 @@
 # utils.ps1
-. ./logging/logging.ps1
+#. ./logging/logging.ps1
 #$wishLogs = "..\logs\wish.log"
 
 $Log = {
@@ -23,19 +23,22 @@ function waitForMissingFile {
     param(
         [Parameter(Mandatory = $True)]
         [string] $FilePath,
+
         [Parameter(Mandatory = $False)]
         [int] $TimeoutSeconds = 30,
+
         [parameter(Mandatory = $false)]
         [scriptblock]$Logger
     )
 
-    & $Log "INFO" "## waitForMissingFile: $FilePath"
+    & $Log "INFO" "waitForMissingFile: $FilePath"
     while (-not (Test-Path $FilePath)) {
-        & $Log "ERROR" "[$FilePath] is missing waiting [$TimeoutSeconds] seconds"
+        & $Log "ERROR" "[$FilePath] missing. Retry after [$TimeoutSeconds] seconds."
         Start-Sleep -Seconds $TimeoutSeconds
     }
-    & $Log "INFO" "OK : File [$FilePath] is present."
+    & $Log "INFO" "OK - [$FilePath] is present."
 }
+
 
 function waitNetworkCheckPoint {
     <#  waitNetworkCheckPoint is handle network issues,
@@ -44,6 +47,7 @@ function waitNetworkCheckPoint {
     # TODO
 }
 
+
 function InvokeNativeExe {
     [CmdletBinding()]
     param(
@@ -51,31 +55,47 @@ function InvokeNativeExe {
         [string]$FilePath,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [string[]]$ArgumentList
+        [string[]]$ArgumentList,
+
+        [parameter(Mandatory = $false)]
+        [scriptblock]$Logger
     )
     # Execute command and capture both standard output and error streams
     $output = & $FilePath $ArgumentList 2>&1
 
     if ($LASTEXITCODE -eq 0) {
         #Write-Host "- OK : $FilePath executed successfully." -ForegroundColor Green
-        Logging -LogLevel "INFO" -LogMessage "- OK : [$FilePath] executed successfully." -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "INFO" "[$FilePath] executed successfully."
+        #Logging -LogLevel "INFO" -LogMessage "- OK : [$FilePath] executed successfully." -LogDestination $fullPathUnitLogs -ShowColors -Less
         return $true
     } else {
         #Write-Host "- ERROR: $FilePath failed with exit code $LASTEXITCODE" -ForegroundColor Red
-        Logging -LogLevel "ERROR" -LogMessage "- ERROR: [$FilePath] failed with exit code $LASTEXITCODE" -LogDestination $wishLogs -ShowColors -Less
+        & $Log "INFO" "[$FilePath] failed with exit code $LASTEXITCODE"
+        #Logging -LogLevel "ERROR" -LogMessage "- ERROR: [$FilePath] failed with exit code $LASTEXITCODE" -LogDestination $wishLogs -ShowColors -Less
         if ($output) {
             #Write-Host "Output:" -ForegroundColor Yellow
-            Logging -LogLevel "INFO" -LogMessage "Output:" -LogDestination $fullPathUnitLogs -ShowColors -Less
+            & $Log "INFO" "Output:"
+            #Logging -LogLevel "INFO" -LogMessage "Output:" -LogDestination $fullPathUnitLogs -ShowColors -Less
             #$output | ForEach-Object { Write-Host "  $_" }
-            $output | ForEach-Object { Logging -LogLevel "INFO" -LogMessage "[$_]" -LogDestination $fullPathUnitLogs -ShowColors -Less }
+            #$output | ForEach-Object { Logging -LogLevel "INFO" -LogMessage "[$_]" -LogDestination $fullPathUnitLogs -ShowColors -Less }
+            $output | ForEach-Object { & $Log "INFO" "[$_]" }
         }
         return $false
     }
 }
+
+<#TODO Mandatory SerialNumber #>
 function checkLastCommand {
     [CmdletBinding()]
     param(
-        [string]$ContextMessage = "" # Optional Comment
+        [parameter(Mandatory = $false)]
+        [string]$ContextMessage = "", # Optional Comment
+
+        [parameter(Mandatory = $false)]
+        [string]$SerialNumber = "Unknown", # Optional Serial Number for logging
+
+        [parameter(Mandatory = $false)]
+        [scriptblock]$Logger
     )
 
     # Get data from Call Stack
@@ -84,100 +104,128 @@ function checkLastCommand {
     $lineNumber     = $caller.ScriptLineNumber
     $lineText       = if ($caller.Position) { $caller.Position.Text.Trim() } else { "N/A" }
 
-    Logging -LogLevel "INFO" -LogMessage "## checkLastCommand (Caller: $callerFunction)" -LogDestination $fullPathUnitLogs -ShowColors -Less
+    & $Log "INFO" "checkLastCommand (Caller: $callerFunction)"
+    #Logging -LogLevel "INFO" -LogMessage "## checkLastCommand (Caller: $callerFunction)" -LogDestination $fullPathUnitLogs -ShowColors -Less
 
     if ($LASTEXITCODE -eq 0) {
-        Logging -LogLevel "INFO" -LogMessage "- OK : [$callerFunction] executed successfully (Line $lineNumber)." -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "INFO" "[$callerFunction] executed successfully (Line $lineNumber)."
+        #Logging -LogLevel "INFO" -LogMessage "- OK : [$callerFunction] executed successfully (Line $lineNumber)." -LogDestination $fullPathUnitLogs -ShowColors -Less
     } else {
         $errorMsg = "Failed in [$callerFunction] | Line $lineNumber | Command: '$lineText' | ExitCode: [$LASTEXITCODE]"
         
         if ($ContextMessage) {
             $errorMsg += " | Note: $ContextMessage"
         }
-
-        Logging -LogLevel "ERROR" -LogMessage "- $($serialNumber) : $errorMsg" -LogDestination $wishLogs -ShowColors -Less
-        Logging -LogLevel "ERROR" -LogMessage "- $errorMsg" -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "ERROR" "- $SerialNumber Serial Number : $errorMsg"
+        #Logging -LogLevel "ERROR" -LogMessage "- $($serialNumber) : $errorMsg" -LogDestination $wishLogs -ShowColors -Less
+        #Logging -LogLevel "ERROR" -LogMessage "- $errorMsg" -LogDestination $fullPathUnitLogs -ShowColors -Less
     }
 }
+
 
 function exitOnMissingFile {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $True)]
-        [string] $Path
+        [string] $Path,
+
+        [parameter(Mandatory = $false)]
+        [string] $SerialNumber = "Unknown", # Optional Serial Number for logging
+
+        [parameter(Mandatory = $false)]
+        [scriptblock]$Logger
     )
     #Write-Host "## exitOnMissingFile: $Path"
-    Logging -LogLevel "INFO" -LogMessage "## exitOnMissingFile" -LogDestination $fullPathUnitLogs -ShowColors -Less
+    & $Log "INFO" "exitOnMissingFile"
+    #Logging -LogLevel "INFO" -LogMessage "## exitOnMissingFile" -LogDestination $fullPathUnitLogs -ShowColors -Less
     if (-not (Test-Path $Path)) {
         #Write-Host "- CRITICAL: file is missing" -ForegroundColor Red
-        Logging -LogLevel "CRITICAL" -LogMessage "- CRITICAL: on $($serialNumber) - file is missing: [$Path]" -LogDestination $wishLogs -ShowColors -Less
-        Logging -LogLevel "CRITICAL" -LogMessage "- CRITICAL: on $($serialNumber) - file is missing: [$Path]" -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "CRITICAL" "Missing file: [$Path] at Serial Number:[$SerialNumber]"
+        #Logging -LogLevel "CRITICAL" -LogMessage "- CRITICAL: on $($serialNumber) - file is missing: [$Path]" -LogDestination $wishLogs -ShowColors -Less
+        #Logging -LogLevel "CRITICAL" -LogMessage "- CRITICAL: on $($serialNumber) - file is missing: [$Path]" -LogDestination $fullPathUnitLogs -ShowColors -Less
         exit 1
     }
     #Write-Host "- OK"
-    Logging -LogLevel "INFO" -LogMessage "- OK : [$Path]" -LogDestination $fullPathUnitLogs -ShowColors -Less
+    & $Log "INFO" "OK : [$Path]"
+    #Logging -LogLevel "INFO" -LogMessage "- OK : [$Path]" -LogDestination $fullPathUnitLogs -ShowColors -Less
     #return $true
 }
+
 
 function returnFalseOnMissingFile {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $True)]
-        [string] $Path
+        [string] $Path,
+
+        [parameter(Mandatory = $false)]
+        [scriptblock]$Logger
     )
     #Write-Host "## returnFalseOnMissingFile: $Path"
-    Logging -LogLevel "INFO" -LogMessage "## returnFalseOnMissingFile" -LogDestination $fullPathUnitLogs -ShowColors -Less
+    & $Log "INFO" "returnFalseOnMissingFile"
+    #Logging -LogLevel "INFO" -LogMessage "## returnFalseOnMissingFile" -LogDestination $fullPathUnitLogs -ShowColors -Less
     $result = Test-Path $path
     if ($false -eq $result){
         #Write-Host "- ERROR: missing file $path" -ForegroundColor Red
-        Logging -LogLevel "ERROR" -LogMessage "- ERROR: missing file [$Path]" -LogDestination $wishLogs -ShowColors -Less
-        Logging -LogLevel "ERROR" -LogMessage "- ERROR: missing file [$Path]" -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "ERROR" "missing file [$Path]"
+        #Logging -LogLevel "ERROR" -LogMessage "- ERROR: missing file [$Path]" -LogDestination $wishLogs -ShowColors -Less
+        #Logging -LogLevel "ERROR" -LogMessage "- ERROR: missing file [$Path]" -LogDestination $fullPathUnitLogs -ShowColors -Less
     } else {
         #Write-Host "- OK : $Path"
-        Logging -LogLevel "INFO" -LogMessage "- OK : [$Path]" -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "INFO" "OK : [$Path]"
+        #Logging -LogLevel "INFO" -LogMessage "- OK : [$Path]" -LogDestination $fullPathUnitLogs -ShowColors -Less
     }
     #return $result
 }
+
 
 function getFormatDate {
     $result = (Get-CimInstance -ClassName Win32_BIOS).SerialNumber
     return $result
 }
 
+
 function getSerialNumber {
     $result = (Get-CimInstance -ClassName Win32_BIOS).SerialNumber
     return $result
 }
+
 
 function getModel {
     $result = (Get-CimInstance -ClassName Win32_ComputerSystem).Model
     return $result
 }
 
+
 function getManufacturer {
     $result = (Get-CimInstance -ClassName Win32_ComputerSystem).Manufacturer
     return $result
 }
+
 
 function getArchitecture {
     $result = (Get-CimInstance -ClassName Win32_ComputerSystem).SystemType
     return $result
 }
 
+
 function getSMBIOSBIOSVersion {
     $result = (Get-CimInstance -ClassName Win32_BIOS).SMBIOSBIOSVersion
     return $result
 }
+
 
 function getBaseBoardProduct {
     $result = (Get-CimInstance -ClassName Win32_BaseBoard).Product
     return $result
 }
 
+
 function getKeyboardType {
     $result = (Get-CimInstance -ClassName Win32_Keyboard).DeviceID
     return $result
 }
+
 
 function getAcpiOemType {
     [CmdletBinding()]
@@ -224,14 +272,15 @@ function getIndexFromDictionary {
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [string]$WinEdition,
+
         [parameter(Mandatory = $false)]
         [string]$ProductLanguage,
+
         [parameter(Mandatory = $false)]
         [scriptblock]$Logger
     )
 
     if($ProductLanguage -eq "HU") {
-        #Logging -LogLevel "INFO" -LogMessage "- INFO: Using Hungarian language mapping for Windows editions." -LogDestination $fullPathUnitLogs -ShowColors -Less
         & $Log "INFO" "Using Hungarian language mapping for Windows Product."
         # Hashtable for HU
         $map = @{
@@ -245,11 +294,8 @@ function getIndexFromDictionary {
             "enterprise"           = 8
         }
     } elseif ($ProductLanguage -eq "ENGB") {
-        # International Windows
-        #Logging -LogLevel "INFO" -LogMessage "- INFO: Using International English language mapping for Windows editions." -LogDestination $wishLogs -ShowColors -Less
-        #Logging -LogLevel "INFO" -LogMessage "- INFO: Using [$ProductLanguage] language mapping for Windows editions." -LogDestination $fullPathUnitLogs -ShowColors -Less
         & $Log "INFO" "Using [$ProductLanguage] language mapping for Windows Product."
-        # Hashtable for ENGB (default)
+        # Hashtable for ENGB
         $map = @{
             "home"                  = 1
             "home n"                = 2
@@ -281,6 +327,7 @@ function getIndexFromDictionary {
     
 }
 
+
 function measureTask {
     [CmdletBinding()]
     param (
@@ -288,10 +335,12 @@ function measureTask {
         [string]$TaskName,
 
         [Parameter(Mandatory = $true, Position = 1)]
-        [scriptblock]$ScriptBlock
-    )
+        [scriptblock]$ScriptBlock,
 
-    Logging -LogLevel "INFO" -LogMessage ">>> START Task: [$TaskName]" -LogDestination $fullPathUnitLogs -ShowColors -Less
+        [parameter(Mandatory = $false)]
+        [scriptblock]$Logger
+    )
+    & $Log "INFO" ">>> START Task: [$TaskName]"
 
     # Start a stopwatch to measure the execution time
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -301,7 +350,7 @@ function measureTask {
         & $ScriptBlock
     }
     catch {
-        Logging -LogLevel "ERROR" -LogMessage "- Task Exception [$TaskName]: $_" -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "ERROR" "- Task Exception [$TaskName]: $_"
     }
     finally {
         # Stop the stopwatch and log the elapsed time
@@ -311,12 +360,13 @@ function measureTask {
         $elapsed = $stopwatch.Elapsed
         $formattedDuration = "{0:hh\:mm\:ss\.ff}" -f $elapsed
 
-        Logging -LogLevel "INFO" -LogMessage "<<< FINISHED Task: [$TaskName] | Duration: $formattedDuration" -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "INFO" "<<< FINISHED Task: [$TaskName] | Duration: $formattedDuration"
 
         # A Check error code an add Duration
         checkLastCommand -ContextMessage "Duration: $formattedDuration"
     }
 }
+
 
 function formatTargetDrive {
     param (
@@ -325,6 +375,7 @@ function formatTargetDrive {
     )
     diskpart /s $DiskpartTXT
 }
+
 
 function applyWindowsImage {
     param (
@@ -339,6 +390,7 @@ function applyWindowsImage {
     dism /Apply-Image /ImageFile:"$cleanPath" /Index:$Index /ApplyDir:$TargetDrive
 }
 
+
 function injectDrivers {
     param (
         [parameter(Mandatory = $true)]
@@ -349,6 +401,7 @@ function injectDrivers {
     $cleanPath = $DriverPath.Replace('/', '\')
     dism /Image:$TargetDrive /Add-Driver /Driver:$cleanPath /Recurse /ForceUnsigned
 }
+
 
 function applyUnattendXML {
     param (
