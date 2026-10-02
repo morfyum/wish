@@ -5,6 +5,19 @@ Write-Host "# POST INSTALL SCRIPT" -ForegroundColor Cyan
 Set-executionPolicy -ExecutionPolicy Bypass -Scope CurrentUser -Force
 Get-ExecutionPolicy
 
+$taskList = Get-Content ./taskList.json | ConvertFrom-Json
+$numberOfTasks = ($taskList.tasks).Length
+$taskCounter = 1
+
+Write-Host "## TASKS TO RUN" -ForegroundColor Cyan
+$taskList.tasks | ForEach-Object {
+    Write-Host "Task $taskCounter/$numberOfTasks : $($_.taskName)"
+    $postInstallRoot = (Get-Location).Path
+    Set-Location $_.taskDirectory
+    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File $_.taskWorker" -Wait
+    Set-Location $postInstallRoot
+}
+
 <# TODO
     - Install OEM Keys
     - Start unknownDeviceHandler
