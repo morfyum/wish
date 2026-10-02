@@ -2,11 +2,39 @@
 . ./logging/logging.ps1
 #$wishLogs = "..\logs\wish.log"
 
+$Log = {
+    param([string]$Level, [string]$Message)
+    if ($Logger) {
+        & $Logger -LogLevel $Level -LogMessage $Message
+    } else {
+        switch ($Level) {
+            "CRITICAL" { Write-Host "[$Level] $Message" -ForegroundColor Magenta}  # or Write-Error $Message
+            "ERROR"    { Write-Host "[$Level]    $Message" -ForegroundColor Red }  # or Write-Error $Message
+            "WARNING"  { Write-Host "[$Level]  $Message" -ForegroundColor Yellow}  # or Write-Warning $Message}
+            "INFO"     { Write-Host "[$Level]     $Message"}  # or Write-Information $Message
+            default    { Write-Host "[$Level]     $Message" }
+        }
+    }
+}
+
+
 function waitForMissingFile {
-    <#  waitForMissingFile is handle network issues,
-        use this function if you have instable internet connection between actions
-    #>
-    # TODO 
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $True)]
+        [string] $FilePath,
+        [Parameter(Mandatory = $False)]
+        [int] $TimeoutSeconds = 30,
+        [parameter(Mandatory = $false)]
+        [scriptblock]$Logger
+    )
+
+    & $Log "INFO" "## waitForMissingFile: $FilePath"
+    while (-not (Test-Path $FilePath)) {
+        & $Log "ERROR" "[$FilePath] is missing waiting [$TimeoutSeconds] seconds"
+        Start-Sleep -Seconds $TimeoutSeconds
+    }
+    & $Log "INFO" "OK : File [$FilePath] is present."
 }
 
 function waitNetworkCheckPoint {
@@ -190,17 +218,21 @@ public class AcpiChecker {
     return [AcpiChecker]::CheckOemType()
 }
 
+<# TODO: FIX: Single Responsibility Principle #>
 function getIndexFromDictionary {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [string]$WinEdition,
         [parameter(Mandatory = $false)]
-        [string]$ProductLanguage
+        [string]$ProductLanguage,
+        [parameter(Mandatory = $false)]
+        [scriptblock]$Logger
     )
 
     if($ProductLanguage -eq "HU") {
-        Logging -LogLevel "INFO" -LogMessage "- INFO: Using Hungarian language mapping for Windows editions." -LogDestination $fullPathUnitLogs -ShowColors -Less
+        #Logging -LogLevel "INFO" -LogMessage "- INFO: Using Hungarian language mapping for Windows editions." -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "INFO" "Using Hungarian language mapping for Windows Product."
         # Hashtable for HU
         $map = @{
             "home"                 = 1
@@ -212,10 +244,11 @@ function getIndexFromDictionary {
             "pro for workstations" = 7
             "enterprise"           = 8
         }
-    } else {
+    } elseif ($ProductLanguage -eq "ENGB") {
         # International Windows
         #Logging -LogLevel "INFO" -LogMessage "- INFO: Using International English language mapping for Windows editions." -LogDestination $wishLogs -ShowColors -Less
-        Logging -LogLevel "INFO" -LogMessage "- INFO: Using [$ProductLanguage] language mapping for Windows editions." -LogDestination $fullPathUnitLogs -ShowColors -Less
+        #Logging -LogLevel "INFO" -LogMessage "- INFO: Using [$ProductLanguage] language mapping for Windows editions." -LogDestination $fullPathUnitLogs -ShowColors -Less
+        & $Log "INFO" "Using [$ProductLanguage] language mapping for Windows Product."
         # Hashtable for ENGB (default)
         $map = @{
             "home"                  = 1
@@ -230,19 +263,19 @@ function getIndexFromDictionary {
             "pro for workstation"   = 10
             "pro n for workstation" = 11
         }
-
+    } else {
+        & $Log "CRITICAL" "Missing Windows Product for [$ProductLanguage] language mapping"
+        & $Log "CRITICAL" "Please upload this product into ISO directory and register into Config.json"
+        return $null
     }
 
     $key = $WinEdition.Trim().ToLower()
 
     if ($map[$key] -ne $null) {
-        #Write-Host "- OK   : Found index for [$WinEdition] -> [$($map[$key])]" -ForegroundColor Green
-        Logging -LogLevel "INFO" -LogMessage "- OK : Found index for [$WinEdition] -> [$($map[$key])]" -LogDestination $wishLogs -ShowColors -Less
+        & $Log "INFO" "Found index for [$WinEdition] -> [$($map[$key])]"
         return $map[$key]
     } else {
-        #Write-Host "- ERROR: No index found for [$WinEdition]" -ForegroundColor Red
-        $errorMessage = "- No index found for [$WinEdition]"
-        Logging -LogLevel "ERROR" -LogMessage $errorMessage -LogDestination $wishLogs -ShowColors -Less
+        & $Log "CRITICAL" "No index found for [$WinEdition] windows edition"
         return $null
     }
     
