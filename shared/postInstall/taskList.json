@@ -1,0 +1,14 @@
+{
+    "tasks": [
+        {
+            "taskName": "Install Chrome",
+            "taskDirectory": "install-chrome",
+            "taskWorker": "install-chrome.cmd"
+        },
+        {
+            "taskName": "Install 7zip",
+            "taskDirectory": "install-7zip",
+            "taskWorker": "install-7zip.cmd"
+        }
+    ]
+}
