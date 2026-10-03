@@ -9,14 +9,13 @@ $Log = {
     } else {
         switch ($Level) {
             "CRITICAL" { Write-Host "[$Level] $Message" -ForegroundColor Magenta}  # or Write-Error $Message
-            "ERROR"    { Write-Host "[$Level]    $Message" -ForegroundColor Red }  # or Write-Error $Message
+            "ERROR"    { Write-Host "[$Level]  $Message" -ForegroundColor Red }  # or Write-Error $Message
             "WARNING"  { Write-Host "[$Level]  $Message" -ForegroundColor Yellow}  # or Write-Warning $Message}
-            "INFO"     { Write-Host "[$Level]     $Message"}  # or Write-Information $Message
-            default    { Write-Host "[$Level]     $Message" }
+            "INFO"     { Write-Host "[$Level]   $Message"}  # or Write-Information $Message
+            default    { Write-Host "[$Level]   $Message" }
         }
     }
 }
-
 
 function waitForMissingFile {
     [CmdletBinding()]
@@ -363,7 +362,7 @@ function measureTask {
         & $Log "INFO" "<<< FINISHED Task: [$TaskName] | Duration: $formattedDuration"
 
         # A Check error code an add Duration
-        checkLastCommand -ContextMessage "Duration: $formattedDuration"
+        checkLastCommand -ContextMessage "Duration: $formattedDuration" -Logger $Logger
     }
 }
 
@@ -374,6 +373,7 @@ function formatTargetDrive {
         [string]$DiskpartTXT
     )
     diskpart /s $DiskpartTXT
+    Start-Sleep -Seconds 3
 }
 
 
